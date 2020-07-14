@@ -109,7 +109,7 @@ void AlertRuleManager::restoreRules(const std::vector<fty::AlertRule>& rules)
             continue;
         }
 
-        if (!filePath.has_parent_path()) {
+        if (!fs::exists(filePath.parent_path())) {
             log_error("Folder %s does not exists: skipping...", filePath.parent_path().c_str());
             continue;
         }
