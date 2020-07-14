@@ -91,10 +91,6 @@ namespace fty { namespace alertutils {
             rules.push_back(r);
         }
 
-        for (const auto& r : rules) {
-            r.dump(std::cout);
-        }
-
         return rules;
     }
 }} // namespace fty::alertutils

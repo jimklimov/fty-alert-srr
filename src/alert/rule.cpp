@@ -29,16 +29,6 @@ AlertRule::AlertRule(const std::string& path, const std::string& data)
 {
 }
 
-void AlertRule::load()
-{
-    log_debug("load rule");
-}
-
-void AlertRule::save()
-{
-    log_debug("save rule");
-}
-
 std::string AlertRule::path() const
 {
     return m_path;

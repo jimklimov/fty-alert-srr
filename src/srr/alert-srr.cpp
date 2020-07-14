@@ -146,6 +146,8 @@ dto::srr::RestoreResponse AlertSrr::handleRestore(const dto::srr::RestoreQuery& 
                 std::unique_lock<std::mutex> lock(m_srrLock);
                 std::vector<fty::AlertRule>  rules = deserializeRules(feature.data(), SRR_ACTIVE_VERSION);
 
+                m_alertRuleManager.restoreRules(rules);
+
                 featureStatus.set_status(Status::SUCCESS);
             } catch (std::exception& e) {
                 featureStatus.set_status(Status::FAILED);

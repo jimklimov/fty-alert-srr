@@ -94,4 +94,33 @@ std::vector<fty::AlertRule> AlertRuleManager::getRules() const
     return rules;
 }
 
+void AlertRuleManager::restoreRules(const std::vector<fty::AlertRule>& rules)
+{
+    namespace fs = std::filesystem;
+
+    for (const auto& r : rules) {
+        const std::string& path = r.path();
+        const std::string& data = r.data();
+
+        fs::path filePath = path;
+
+        if (fs::exists(path)) {
+            log_warning("File %s already exists: skipping...", filePath.filename().c_str());
+            continue;
+        }
+
+        if (!filePath.has_parent_path()) {
+            log_error("Folder %s does not exists: skipping...", filePath.parent_path().c_str());
+            continue;
+        }
+
+        std::ofstream file;
+        file.open(path);
+
+        file << data;
+
+        file.close();
+    }
+}
+
 } // namespace fty

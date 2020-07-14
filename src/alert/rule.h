@@ -30,9 +30,6 @@ public:
     AlertRule(const std::string& path, const std::string& data);
     ~AlertRule() = default;
 
-    void load();
-    void save();
-
     std::string path() const;
     std::string data() const;
 

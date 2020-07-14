@@ -39,6 +39,8 @@ public:
 
     std::vector<fty::AlertRule> getRules() const;
 
+    void restoreRules(const std::vector<fty::AlertRule>& rules);
+
 private:
     std::vector<std::string> m_rulesPath;
 };
