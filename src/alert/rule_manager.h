@@ -17,21 +17,30 @@
     =========================================================================
 */
 
-#include "include/fty-alert-srr.h"
-#include "srr/alert-srr.h"
-#include <fty_common_messagebus.h>
-#include <fty_log.h>
-#include <fty_srr_dto.h>
-#include <iostream>
+#pragma once
 
-int main()
+#include <string>
+#include <vector>
+
+namespace fty {
+
+static constexpr const char* ALERT_RULES_EXT = ".cfg";
+
+class AlertRule;
+
+class AlertRuleManager
 {
-    fty::AlertSrr agent;
+public:
+    AlertRuleManager();
+    ~AlertRuleManager() = default;
 
-    agent.init();
+    void addAlertRulesPath(const std::string& path);
+    void removeAlertRulesPath(const std::string& path);
 
-    while (1) {
-    }
+    std::vector<fty::AlertRule> getRules() const;
 
-    return EXIT_SUCCESS;
-}
+private:
+    std::vector<std::string> m_rulesPath;
+};
+
+} // namespace fty

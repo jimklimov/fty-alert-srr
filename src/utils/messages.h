@@ -17,21 +17,13 @@
     =========================================================================
 */
 
-#include "include/fty-alert-srr.h"
-#include "srr/alert-srr.h"
+#pragma once
+
 #include <fty_common_messagebus.h>
-#include <fty_log.h>
-#include <fty_srr_dto.h>
-#include <iostream>
+#include <string.h>
 
-int main()
-{
-    fty::AlertSrr agent;
-
-    agent.init();
-
-    while (1) {
-    }
-
-    return EXIT_SUCCESS;
-}
+namespace fty { namespace alertutils {
+    messagebus::Message createMessage(const std::string& subject, const std::string& correlationID,
+        const std::string& from, const std::string& to, const std::string& status,
+        const messagebus::UserData& data);
+}} // namespace fty::alertutils

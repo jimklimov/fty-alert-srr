@@ -17,21 +17,17 @@
     =========================================================================
 */
 
-#include "include/fty-alert-srr.h"
-#include "srr/alert-srr.h"
-#include <fty_common_messagebus.h>
-#include <fty_log.h>
-#include <fty_srr_dto.h>
-#include <iostream>
+#include "config.h"
+#include <cxxtools/jsonserializer.h>
+#include <cxxtools/serializationinfo.h>
+#include <filesystem>
 
-int main()
+std::vector<std::string> getRulesPath()
 {
-    fty::AlertSrr agent;
+    // namespace fs = std::filesystem;
 
-    agent.init();
+    std::vector<std::string> path = {
+        "/etc/fty-alert-engine", "/etc/fty-alert-flexbile", "/etc/fty-alert-stats"};
 
-    while (1) {
-    }
-
-    return EXIT_SUCCESS;
+    return path;
 }

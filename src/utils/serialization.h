@@ -17,21 +17,21 @@
     =========================================================================
 */
 
-#include "include/fty-alert-srr.h"
-#include "srr/alert-srr.h"
-#include <fty_common_messagebus.h>
-#include <fty_log.h>
-#include <fty_srr_dto.h>
-#include <iostream>
+#pragma once
 
-int main()
-{
-    fty::AlertSrr agent;
+#include <string>
+#include <vector>
 
-    agent.init();
-
-    while (1) {
-    }
-
-    return EXIT_SUCCESS;
+namespace cxxtools {
+class SerializationInfo;
 }
+
+namespace fty {
+class AlertRule;
+}
+
+namespace fty { namespace alertutils {
+
+    std::string serializeRules(const std::vector<fty::AlertRule>& rules, const std::string& version);
+    std::vector<fty::AlertRule> deserializeRules(const std::string& json, const std::string& version);
+}} // namespace fty::alertutils
