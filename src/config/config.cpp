@@ -18,16 +18,52 @@
 */
 
 #include "config.h"
-#include <cxxtools/jsonserializer.h>
+#include <cxxtools/jsondeserializer.h>
 #include <cxxtools/serializationinfo.h>
 #include <filesystem>
+#include <fstream>
+#include <fty_log.h>
+#include <sstream>
+
+#define CONFIG_FILE "/etc/fty-alert-srr/fty-alert-srr.cfg"
 
 std::vector<std::string> getRulesPath()
 {
-    // namespace fs = std::filesystem;
+    namespace fs = std::filesystem;
 
-    std::vector<std::string> path = {
-        "/etc/fty-alert-engine", "/etc/fty-alert-flexbile", "/etc/fty-alert-stats"};
+    std::vector<std::string> pathList = {
+        "/etc/fty-alert-engine", "/etc/fty-alert-flexible", "/etc/fty-alert-stats"};
 
-    return path;
+    fs::path filePath = CONFIG_FILE;
+
+    if (!fs::exists(filePath)) {
+        log_error("Invalid configuration file path: %s", filePath.c_str());
+        log_warning("Using default configuration");
+
+        return pathList;
+    }
+
+    std::ifstream file;
+    file.open(filePath);
+
+    std::stringstream json;
+    json << file.rdbuf();
+
+    file.close();
+
+    cxxtools::SerializationInfo si;
+
+    try {
+        cxxtools::JsonDeserializer deserializer(json);
+        deserializer.deserialize(si);
+    } catch (const std::exception& e) {
+        log_error("Error while deserializing configuration file: %s", e.what());
+        log_warning("Using default configuration");
+
+        return pathList;
+    }
+
+    si.getMember("folders") >>= pathList;
+
+    return pathList;
 }

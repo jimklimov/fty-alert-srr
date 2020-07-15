@@ -39,6 +39,16 @@ std::string AlertRule::data() const
     return m_data;
 }
 
+void AlertRule::setPath(const std::string& path)
+{
+    m_path = path;
+}
+
+void AlertRule::setData(const std::string& data)
+{
+    m_data = data;
+}
+
 void AlertRule::dump(std::ostream& os) const
 {
     os << "#################################################################" << std::endl;

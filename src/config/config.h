@@ -19,8 +19,6 @@
 
 #pragma once
 
-#define CONFIG_FILE "fty-alert-srr.cfg"
-
 #include <string>
 #include <vector>
 

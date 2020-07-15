@@ -33,6 +33,9 @@ public:
     std::string path() const;
     std::string data() const;
 
+    void setPath(const std::string& path);
+    void setData(const std::string& data);
+
     void dump(std::ostream& os) const;
 
 private:
