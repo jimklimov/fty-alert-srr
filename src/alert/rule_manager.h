@@ -19,30 +19,39 @@
 
 #pragma once
 
+#include "rule.h"
+#include <map>
 #include <string>
 #include <vector>
 
 namespace fty {
 
-static constexpr const char* ALERT_RULES_EXT = ".cfg";
-
-class AlertRule;
+static constexpr const char* ALERT_RULES_EXT = ".rule";
 
 class AlertRuleManager
 {
 public:
+    using TypeNamePair = std::pair<AlertRule::Type, std::string>;
+
     AlertRuleManager();
     ~AlertRuleManager() = default;
 
-    void addAlertRulesPath(const std::string& path);
-    void removeAlertRulesPath(const std::string& path);
+    void storeRule(const AlertRule& r, bool overwrite = false);
+    void deleteRule(const AlertRule& r);
+
+    void addAlertRulesPath(const fty::AlertRule::Type& type, const std::string& path);
+    void removeAlertRulesPath(const fty::AlertRule::Type& type);
+    
+    void addDelExclusion(const fty::AlertRule::Type& type, const std::string& name);
+    void removeDelExclusion(const fty::AlertRule::Type& type, const std::string& name);
 
     std::vector<fty::AlertRule> getRules() const;
-
-    void restoreRules(const std::vector<fty::AlertRule>& rules);
+    void                        restoreRules(const std::vector<fty::AlertRule>& rules);
+    void                        clearRules();
 
 private:
-    std::vector<std::string> m_rulesPath;
+    std::map<fty::AlertRule::Type, std::string> m_typePath;
+    std::vector<TypeNamePair>                   m_delExclusions;
 };
 
 } // namespace fty

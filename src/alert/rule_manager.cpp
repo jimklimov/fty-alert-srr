@@ -18,7 +18,6 @@
 */
 
 #include "rule_manager.h"
-#include "rule.h"
 #include <algorithm>
 #include <filesystem>
 #include <fstream>
@@ -32,30 +31,109 @@ AlertRuleManager::AlertRuleManager()
 {
 }
 
-void AlertRuleManager::addAlertRulesPath(const std::string& path)
+void AlertRuleManager::storeRule(const AlertRule& r, bool overwrite)
 {
     namespace fs = std::filesystem;
 
-    auto found = std::find(m_rulesPath.begin(), m_rulesPath.end(), path);
-    if (found != m_rulesPath.end()) {
-        log_warning("Path %s is already motitored", path.c_str());
+    const fty::AlertRule::Type type = r.type();
+    const std::string&         name = r.name();
+    const std::string&         data = r.data();
+
+    const std::string typeStr = AlertRule::ruleTypeToString(type);
+
+    if (!m_typePath.count(type)) {
+        throw std::runtime_error("Type " + AlertRule::ruleTypeToString(type) +
+                                 " is not monitored: cannot create rule " + typeStr + ":" + name);
+    }
+
+    fs::path filePath = m_typePath[type];
+    filePath.append(name + ALERT_RULES_EXT);
+
+    if (fs::exists(filePath)) {
+        if (!overwrite) {
+            throw std::runtime_error("File " + filePath.filename().string() +
+                                     " already exists. Skipping creation of rule " + typeStr + ":" + name);
+        } else {
+            log_warning("File %s already exists : overwrite", filePath.filename().c_str());
+        }
+    }
+
+    if (!fs::exists(filePath.parent_path())) {
+        throw std::runtime_error("Folder " + filePath.parent_path().string() + " does not exist");
+    }
+
+    log_debug("Creating rule %s:%s", AlertRule::ruleTypeToString(type).c_str(), name.c_str());
+
+    std::ofstream file;
+    file.open(filePath);
+
+    file << data;
+
+    file.close();
+}
+
+void AlertRuleManager::deleteRule(const AlertRule& r)
+{
+    namespace fs = std::filesystem;
+
+    fs::path filePath = m_typePath[r.type()];
+
+    filePath.append(r.name() + ALERT_RULES_EXT);
+
+    fs::remove(filePath);
+}
+
+void AlertRuleManager::addAlertRulesPath(const fty::AlertRule::Type& type, const std::string& path)
+{
+    namespace fs = std::filesystem;
+
+    auto found = m_typePath.find(type);
+    if (found != m_typePath.end()) {
+        log_warning("Type %s already exists", AlertRule::ruleTypeToString(type).c_str());
     } else {
         if (fs::exists(path)) {
-            m_rulesPath.push_back(path);
-            log_debug("Path %s added", path.c_str());
+            m_typePath[type] = path;
         } else {
             log_error("Path %s does not exist", path.c_str());
         }
     }
 }
-void AlertRuleManager::removeAlertRulesPath(const std::string& path)
+
+void AlertRuleManager::removeAlertRulesPath(const fty::AlertRule::Type& type)
 {
-    auto found = std::find(m_rulesPath.begin(), m_rulesPath.end(), path);
-    if (found != m_rulesPath.end()) {
-        log_debug("Path %s deleted", path.c_str());
-        m_rulesPath.erase(found);
+    auto found = m_typePath.find(type);
+
+    if (found != m_typePath.end()) {
+        m_typePath.erase(found);
+        log_debug("Type %s deleted", AlertRule::ruleTypeToString(type).c_str());
     } else {
-        log_warning("Path %s is not monitored", path.c_str());
+        log_warning("Type %s is not monitored", AlertRule::ruleTypeToString(type).c_str());
+    }
+}
+
+void AlertRuleManager::addDelExclusion(const fty::AlertRule::Type& type, const std::string& name)
+{
+    auto found = std::find(m_delExclusions.begin(), m_delExclusions.end(), std::make_pair(type, name));
+
+    if (found != m_delExclusions.end()) {
+        log_warning("Rule %s:%s already excluded from deletion", AlertRule::ruleTypeToString(type).c_str(),
+            name.c_str());
+    } else {
+        m_delExclusions.push_back(std::make_pair(type, name));
+    }
+}
+
+void AlertRuleManager::removeDelExclusion(const fty::AlertRule::Type& type, const std::string& name)
+{
+    auto found = std::find(m_delExclusions.begin(), m_delExclusions.end(), std::make_pair(type, name));
+
+    if (found != m_delExclusions.end()) {
+        log_debug(
+            "Deleting rule %s:%s from exclusions", AlertRule::ruleTypeToString(type).c_str(), name.c_str());
+        m_delExclusions.erase(found);
+    } else {
+        log_warning(
+            "Rule %s:%s is not set in exclusions", AlertRule::ruleTypeToString(type).c_str(), name.c_str());
     }
 }
 
@@ -65,18 +143,21 @@ std::vector<fty::AlertRule> AlertRuleManager::getRules() const
 
     std::vector<fty::AlertRule> rules;
 
-    for (const std::string& path : m_rulesPath) {
+    for (const auto& entry : m_typePath) {
+        const std::string& path = entry.second;
+
         if (!fs::exists(path)) {
             log_error("Path %s does not exist", path.c_str());
             continue;
         }
 
-        for (auto& entry : fs::directory_iterator(path)) {
-            if (entry.is_regular_file()) {
-                if (entry.path().extension() == ALERT_RULES_EXT) {
-                    log_debug("Found configuration file %s", entry.path().c_str());
+        for (auto& f : fs::directory_iterator(path)) {
+            if (f.is_regular_file()) {
+                if (f.path().extension() == ALERT_RULES_EXT) {
+                    log_debug("Found configuration file %s", f.path().c_str());
 
-                    const std::string& filePath = entry.path().c_str();
+                    const std::string& filePath = f.path().string();
+                    const std::string& fileName = f.path().stem();
 
                     std::ifstream file;
                     file.open(filePath);
@@ -84,7 +165,7 @@ std::vector<fty::AlertRule> AlertRuleManager::getRules() const
                     std::ostringstream stream;
                     stream << file.rdbuf();
 
-                    rules.push_back(AlertRule(filePath, stream.str()));
+                    rules.push_back(AlertRule(entry.first, fileName, stream.str()));
 
                     file.close();
                 }
@@ -99,27 +180,53 @@ void AlertRuleManager::restoreRules(const std::vector<fty::AlertRule>& rules)
     namespace fs = std::filesystem;
 
     for (const auto& r : rules) {
-        const std::string& path = r.path();
-        const std::string& data = r.data();
+        try {
+            storeRule(r);
+        } catch (std::invalid_argument& e) {
+            log_warning("%s", e.what());
+        } catch (std::exception& e) {
+            log_error("%s", e.what());
+        }
+    }
+}
 
-        fs::path filePath = path;
+void AlertRuleManager::clearRules()
+{
+    namespace fs = std::filesystem;
 
-        if (fs::exists(path)) {
-            log_warning("File %s already exists: skipping...", filePath.filename().c_str());
+    for (const auto& entry : m_typePath) {
+        const AlertRule::Type type = entry.first;
+        const std::string&    path = entry.second;
+
+        const std::string typeStr = AlertRule::ruleTypeToString(type);
+
+        if (!fs::exists(path)) {
+            log_error("Wrong path for type %s", typeStr.c_str());
             continue;
         }
 
-        if (!fs::exists(filePath.parent_path())) {
-            log_error("Folder %s does not exists: skipping...", filePath.parent_path().c_str());
-            continue;
+        log_debug("Deleting rules ot type %s ...", typeStr.c_str());
+        for (auto& f : fs::directory_iterator(path)) {
+            if (f.is_regular_file()) {
+                if (f.path().extension() == ALERT_RULES_EXT) {
+                    const std::string& name = f.path().stem();
+
+                    auto found =
+                        find_if(m_delExclusions.begin(), m_delExclusions.end(), [&](const TypeNamePair& ex) {
+                            return ex.first == type && ex.second == name;
+                        });
+
+                    if (found != m_delExclusions.end()) {
+                        log_warning("Rule %s of type %s set in exclusions: skipping...", name.c_str(),
+                            typeStr.c_str());
+                        continue;
+                    }
+
+                    log_debug("Deleting rule %s:%s ...", typeStr.c_str(), name.c_str());
+                    fs::remove(f.path());
+                }
+            }
         }
-
-        std::ofstream file;
-        file.open(path);
-
-        file << data;
-
-        file.close();
     }
 }
 

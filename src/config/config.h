@@ -21,7 +21,9 @@
 
 #include <string>
 #include <vector>
+#include <utility>
 
-std::vector<std::string> getRulesPath();
+std::vector<std::pair<std::string, std::string>> getRulesPath();
+std::vector<std::pair<std::string, std::string>> getDelExclusions();
 
 

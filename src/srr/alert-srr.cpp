@@ -42,7 +42,12 @@ void AlertSrr::init()
 
     // set alert configuration paths
     for (const auto& entry : getRulesPath()) {
-        m_alertRuleManager.addAlertRulesPath(entry);
+        m_alertRuleManager.addAlertRulesPath(AlertRule::stringToRuleType(entry.first), entry.second);
+    }
+
+    // set alert rules deletion exclusions
+    for (const auto& entry : getDelExclusions()) {
+        m_alertRuleManager.addDelExclusion(AlertRule::stringToRuleType(entry.first), entry.second);
     }
 
     // setup SRR client
@@ -146,6 +151,9 @@ dto::srr::RestoreResponse AlertSrr::handleRestore(const dto::srr::RestoreQuery& 
                 std::unique_lock<std::mutex> lock(m_srrLock);
                 std::vector<fty::AlertRule>  rules = deserializeRules(feature.data(), SRR_ACTIVE_VERSION);
 
+                // delete previous rules
+                m_alertRuleManager.clearRules();
+                // restore rules from SRR
                 m_alertRuleManager.restoreRules(rules);
 
                 featureStatus.set_status(Status::SUCCESS);

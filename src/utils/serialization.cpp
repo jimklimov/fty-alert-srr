@@ -36,7 +36,8 @@ namespace fty { namespace alertutils {
 
         for (auto& r : rules) {
             cxxtools::SerializationInfo& ruleSi = data.addMember("");
-            ruleSi.addMember("path") <<= r.path();
+            ruleSi.addMember("type") <<= AlertRule::ruleTypeToString(r.type());
+            ruleSi.addMember("name") <<= r.name();
             ruleSi.addMember("data") <<= r.data();
         }
 
@@ -82,11 +83,12 @@ namespace fty { namespace alertutils {
         const cxxtools::SerializationInfo& data = si.getMember("data");
 
         for (auto it = data.begin(); it != data.end(); ++it) {
-            std::string p, d;
+            std::string t, n, d;
 
-            it->getMember("path") >>= p;
+            it->getMember("type") >>= t;
+            it->getMember("name") >>= n;
             it->getMember("data") >>= d;
-            AlertRule r(p, d);
+            AlertRule r(AlertRule::stringToRuleType(t), n, d);
 
             rules.push_back(r);
         }

@@ -27,19 +27,33 @@ namespace fty {
 class AlertRule
 {
 public:
-    AlertRule(const std::string& path, const std::string& data);
+    enum class Type
+    {
+        UNKNOWN,
+        ENGINE,
+        FLEXIBLE,
+        LIST
+    };
+
+    AlertRule(const Type& type, const std::string& name, const std::string& data);
     ~AlertRule() = default;
 
-    std::string path() const;
+    Type        type() const;
+    std::string name() const;
     std::string data() const;
 
-    void setPath(const std::string& path);
+    void setType(const Type& type);
+    void setName(const std::string& name);
     void setData(const std::string& data);
 
     void dump(std::ostream& os) const;
 
+    static std::string ruleTypeToString(const Type& t);
+    static Type        stringToRuleType(const std::string& s);
+
 private:
-    std::string m_path;
+    Type        m_type;
+    std::string m_name;
     std::string m_data;
 };
 
