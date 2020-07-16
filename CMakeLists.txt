@@ -46,3 +46,8 @@ etn_target(exe ${PROJECT_NAME}
 )
 
 ##############################################################################################################
+
+install(FILES conf/fty-alert-srr.cfg DESTINATION /etc/fty-alert-srr/)
+install(FILES systemd/fty-alert-srr.service DESTINATION /etc/systemd/system/)
+
+##############################################################################################################
