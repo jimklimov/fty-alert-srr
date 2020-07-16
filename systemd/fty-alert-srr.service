@@ -1,0 +1,14 @@
+[Unit]
+Description=fty-alert-srr daemon
+After=fty-alert-engine fty-alert-flexible fty-alert-list fty-alert-stats fty-srr
+Requires=fty-srr
+PartOf=bios.target
+
+[Service]
+Type=simple
+User=bios
+Restart=always
+ExecStart=/usr/bin/fty-alert-srr
+
+[Install]
+WantedBy=bios.target
