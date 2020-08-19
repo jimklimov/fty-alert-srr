@@ -17,7 +17,6 @@
     =========================================================================
 */
 
-#include "include/fty-alert-srr.h"
 #include "srr/alert-srr.h"
 #include <fty_common_messagebus.h>
 #include <fty_log.h>
