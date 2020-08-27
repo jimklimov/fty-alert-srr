@@ -1,7 +1,7 @@
 [Unit]
 Description=fty-alert-srr daemon
-After=fty-alert-engine fty-alert-flexible fty-alert-list fty-alert-stats fty-srr
-Requires=fty-srr
+After=fty-alert-engine.service fty-alert-flexible.service fty-alert-list.service fty-alert-stats.service fty-srr.service
+Requires=fty-srr.service
 PartOf=bios.target
 
 [Service]
