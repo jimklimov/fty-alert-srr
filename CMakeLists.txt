@@ -12,13 +12,11 @@ DESCRIPTION "SRR agent for alert configuration"
 
 ##############################################################################################################
 # set(CMAKE_BUILD_TYPE Debug)
-file(GLOB_RECURSE SOURCES_FILES src/*.cpp)
-file(GLOB_RECURSE PRIVATE_HEADER_FILES src/*.h)
 
 etn_target(exe ${PROJECT_NAME}
     SOURCES
-        ${SOURCES_FILES}
-        ${PRIVATE_HEADER_FILES}
+        src/*.cpp
+        src/*.h
 
     USES
         cxxtools
