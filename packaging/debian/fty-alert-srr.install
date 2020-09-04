@@ -1,2 +1,2 @@
-/usr/bin/*
-/etc/*
+usr/bin/fty-alert-srr
+etc/systemd/system/fty-alert-srr.service
