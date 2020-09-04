@@ -1,8 +1,12 @@
 [Unit]
 Description=fty-alert-srr daemon
-After=fty-alert-engine.service fty-alert-flexible.service fty-alert-list.service fty-alert-stats.service fty-srr.service
+After=fty-srr.service
 Requires=fty-srr.service
 PartOf=bios.target
+
+# Restart if srr is restarted
+BindsTo=fty-srr.service
+PartOf=fty-srr.service
 
 [Service]
 Type=simple
