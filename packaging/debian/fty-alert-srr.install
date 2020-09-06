@@ -1,2 +1,3 @@
 usr/bin/fty-alert-srr
 etc/systemd/system/fty-alert-srr.service
+etc/fty-alert-srr/fty-alert-srr.cfg
